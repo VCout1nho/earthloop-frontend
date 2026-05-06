@@ -6,7 +6,6 @@ import axios from 'axios';
 
 // ==================== ÍCONES ====================
 
-// Ícones para anúncios (estilo consistente)
 const doacaoIcon = L.divIcon({
   className: 'custom-marker',
   html: `<div style="background:#2e7d32; color:white; width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:26px; border:4px solid white; box-shadow:0 6px 15px rgba(0,0,0,0.3);">🌱</div>`,
@@ -37,14 +36,12 @@ const supermarketIcon = L.divIcon({
 
 function MapPage() {
   const [position] = useState([-16.73, -43.86]);
-  const [places, setPlaces] = useState([]);
   const [filteredPlaces, setFilteredPlaces] = useState([]);
   const [anuncios, setAnuncios] = useState([]);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all');
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null); // Pode ser place ou anúncio
+  const [selectedItem, setSelectedItem] = useState(null);
 
   // Carregar anúncios do localStorage
   useEffect(() => {
@@ -79,7 +76,6 @@ function MapPage() {
         saleItems: ['Macarrão (500g)', 'Leite desnatado (1L)', 'Macarrão instantâneo'],
       }));
 
-      setPlaces(formatted);
       setFilteredPlaces(formatted);
     } catch (err) {
       console.error("Erro na busca:", err);

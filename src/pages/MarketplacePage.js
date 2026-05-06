@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useReducer, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { FaLeaf, FaShoppingCart, FaStar, FaTimes, FaTrash, FaPlus, FaMinus } from "react-icons/fa";
+import 'leaflet/dist/leaflet.css';
 
 // Reducer para o carrinho
 const cartReducer = (state, action) => {

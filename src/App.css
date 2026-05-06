@@ -1,6 +1,7 @@
 /* App.css - Tema global dark/light completo e estável */
 
 @import "leaflet/dist/leaflet.css";
+@import 'leaflet/dist/leaflet.css';
 
 :root {
   /* Light mode (padrão) */

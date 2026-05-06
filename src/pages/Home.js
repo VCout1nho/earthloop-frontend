@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaLeaf, FaMapMarkedAlt, FaStore, FaUsers, FaArrowRight, FaHeart, FaRecycle } from "react-icons/fa";
+import 'leaflet/dist/leaflet.css';
 
 export default function HomePage() {
   const navigate = useNavigate();

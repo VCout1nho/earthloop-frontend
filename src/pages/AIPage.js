@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { FaLeaf, FaSearch, FaSpinner } from "react-icons/fa";
+import React, { useState } from "react";
+import { FaSearch, FaSpinner } from "react-icons/fa";
+import 'leaflet/dist/leaflet.css';
 
 export default function AnaliseMarcasPage() {
   const [searchBrand, setSearchBrand] = useState("");
@@ -13,7 +14,7 @@ export default function AnaliseMarcasPage() {
 
     setLoading(true);
     setBrandAnalysis(null);
-
+    
     // Simulação de delay da IA (2 segundos)
     setTimeout(() => {
       const mockAnalysis = {
@@ -82,8 +83,10 @@ export default function AnaliseMarcasPage() {
         WebkitTextFillColor: "transparent",
         textAlign: "center",
         animation: "fadeUp 1s ease-out",
-      }}>
+      }}
+      >
         Análise de Marcas com IA
+
       </h1>
 
       {/* Barra de Pesquisa */}
@@ -150,6 +153,12 @@ export default function AnaliseMarcasPage() {
             )}
           </button>
         </form>
+
+        {insights && (
+  <div style={{ marginTop: "2rem" }}>
+    <p className="typing-cursor">{insights}</p>
+  </div>
+)}
 
         {/* Resultado da Análise */}
         {brandAnalysis && (
