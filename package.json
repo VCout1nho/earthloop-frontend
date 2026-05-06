@@ -31,13 +31,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-  "start": "react-scripts start",
-  "build": "CI=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
-  "test": "react-scripts test",
-  "eject": "react-scripts eject"
-
-
-    
+    "start": "react-scripts start",
+    "build": "CI=false DISABLE_ESLINT_PLUGIN=true react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -56,5 +53,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "ajv": "^7.2.4"
   }
 }
