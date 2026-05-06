@@ -1,4 +1,6 @@
-const BASE_URL = "http://localhost:5000"; // backend Node/Express
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
+import 'leaflet/dist/leaflet.css';
 
 // 🔹 GET - Buscar locais (mapa)
 export async function fetchLocations() {
@@ -11,7 +13,7 @@ export async function fetchLocations() {
   }
 }
 
-// 🔹 POST - Enviar contato (AGORA COMPLETO)
+// 🔹 POST - Enviar contato
 export async function enviarContato({ nome, email, assunto, mensagem }) {
   try {
     const res = await fetch(`${BASE_URL}/api/contato`, {
@@ -19,12 +21,7 @@ export async function enviarContato({ nome, email, assunto, mensagem }) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        nome,
-        email,
-        assunto,
-        mensagem
-      })
+      body: JSON.stringify({ nome, email, assunto, mensagem })
     });
 
     return res.ok ? await res.json() : { error: "Erro ao enviar contato" };
@@ -60,7 +57,7 @@ export async function fetchAIInsights() {
 // 🔹 POST - Cadastro de usuário
 export async function registerUser({ nome, email, senha }) {
   try {
-    const res = await fetch("http://localhost:5000/api/register", {
+    const res = await fetch(`${BASE_URL}/api/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -75,10 +72,11 @@ export async function registerUser({ nome, email, senha }) {
     return { error: "Erro de conexão" };
   }
 }
+
 // 🔹 POST - Login
 export async function loginUser({ email, senha }) {
   try {
-    const res = await fetch("http://localhost:5000/api/login", {
+    const res = await fetch(`${BASE_URL}/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
