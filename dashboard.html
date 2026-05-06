@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>EarthLoop Impact Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+text-align:center;
+}
+
+.container{
+display:flex;
+justify-content:center;
+gap:40px;
+margin-top:100px;
+flex-wrap:wrap;
+}
+
+.card{
+background:#1e293b;
+padding:40px;
+border-radius:12px;
+width:200px;
+}
+
+.number{
+font-size:40px;
+font-weight:bold;
+color:#22c55e;
+}
+
+.chart-container{
+width:800px;
+margin:auto;
+margin-top:50px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🌍 EarthLoop Impact Dashboard</h1>
+
+<div class="container">
+
+<div class="card">
+<div class="number" id="food"></div>
+<p>Alimentos Salvos</p>
+</div>
+
+<div class="card">
+<div class="number" id="co2"></div>
+<p>CO₂ Evitado</p>
+</div>
+
+<div class="card">
+<div class="number" id="meals"></div>
+<p>Refeições Doadas</p>
+</div>
+
+<div class="card">
+<div class="number" id="partners"></div>
+<p>Parceiros</p>
+</div>
+
+</div>
+
+<div class="chart-container">
+<canvas id="impactChart"></canvas>
+</div>
+
+<script>
+
+fetch("http://localhost:5000/impact")
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("food").innerText = data.foodSaved
+document.getElementById("co2").innerText = data.co2Avoided
+document.getElementById("meals").innerText = data.mealsDonated
+document.getElementById("partners").innerText = data.partners
+
+const ctx = document.getElementById("impactChart")
+
+new Chart(ctx,{
+type:"bar",
+data:{
+labels:[
+"Alimentos Salvos",
+"CO2 Evitado",
+"Refeições Doadas",
+"Parceiros"
+],
+datasets:[{
+label:"Impacto EarthLoop",
+data:[
+data.foodSaved,
+data.co2Avoided,
+data.mealsDonated,
+data.partners
+],
+backgroundColor:[
+"#22c55e",
+"#3b82f6",
+"#f59e0b",
+"#a855f7"
+]
+}]
+},
+options:{
+responsive:true,
+animation:{
+duration:2000
+}
+}
+})
+
+})
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,124 @@
+/* App.css - Tema global dark/light completo e estável */
+
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  /* Light mode (padrão) */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --border: #e2e8f0;
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --chart-line: #3b82f6;
+  --chart-fill: rgba(59, 130, 246, 0.2);
+}
+
+:root.dark {
+  /* Dark mode */
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #1e293b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent: #818cf8;
+  --accent-hover: #6366f1;
+  --border: #334155;
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  --chart-line: #a5b4fc;
+  --chart-fill: rgba(165, 180, 252, 0.25);
+}
+
+/* Aplicação global */
+html, body, #root {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.4s ease, color 0.4s ease;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+main {
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.4s ease;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+body.sidebar-collapsed main {
+  margin-left: var(--sidebar-collapsed-width);
+}
+
+/* Cards e containers comuns */
+.card,
+.bg-white,
+.bg-gray-100,
+.shadow-lg,
+.shadow-2xl,
+.rounded-xl,
+.rounded-2xl {
+  background-color: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+  color: var(--text-primary);
+}
+
+/* Textos */
+h1, h2, h3, h4, h5, h6,
+p, span, div, li, a {
+  color: var(--text-primary);
+}
+
+.text-gray-800, .text-gray-700, .text-gray-600, .text-black {
+  color: var(--text-primary);
+}
+
+.text-gray-500, .text-gray-400, .text-muted {
+  color: var(--text-secondary);
+}
+
+/* Bordas e divisores */
+.border-gray-200, .border, .border-2 {
+  border-color: var(--border);
+}
+
+/* Gráficos Recharts */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+}
+
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border);
+}
+
+.recharts-xAxis .recharts-cartesian-axis-tick-value,
+.recharts-yAxis .recharts-cartesian-axis-tick-value {
+  fill: var(--text-muted);
+}
+
+/* Leaflet (mapa) - ajusta tema */
+.leaflet-container {
+  background: var(--bg-secondary);
+}
+
+.leaflet-tile-pane {
+  filter: brightness(0.95) contrast(1.1) hue-rotate(0deg) saturate(1.2);
+}
+
+/* Evita sobreposição ou corte */
+main, .content-container {
+  overflow: visible;
+  position: relative;
+}
