@@ -62,7 +62,7 @@ function MapPage() {
          node["amenity"="restaurant"](around:7000,${lat},${lng}););
         out body; >; out skel qt;`;
 
-      const res = await axios.get('https://overpass-api.de/api/interpreter', { params: { data: query } });
+      const res = await axios.get("https://earthloop-backend.onrender.com/api/places", { params: { data: query } });
 
       const formatted = (res.data.elements || []).map(p => ({
         id: p.id,
