@@ -63,9 +63,7 @@ function MapPage() {
   node["shop"="supermarket"](around:7000,${lat},${lng});
   node["amenity"="restaurant"](around:7000,${lat},${lng});
 );
-out body;
->;
-out skel qt;
+out center;
 `;
 
       const res = await axios.get("https://earthloop-backend.onrender.com/api/places", { params: { data: query } });
