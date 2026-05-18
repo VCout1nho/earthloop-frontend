@@ -1,29 +1,56 @@
+// src/pages/AnunciePage.js
+// Melhoria: migrado de localStorage para backend real.
+// Requer as rotas /api/anuncios no server.js (ver backend-anuncios.js).
+
 import React, { useState, useEffect } from "react";
+import 'leaflet/dist/leaflet.css';
+
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
+// Helper autenticado reutilizável
+async function apiFetch(path, options = {}) {
+  const token = localStorage.getItem("token");
+  return fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+      ...(options.headers || {}),
+    },
+  });
+}
+
+const formInicial = {
+  businessName: "", location: "", contact: "", itemName: "",
+  quantity: "", price: "", type: "doacao", description: "", imagePreview: "",
+};
 
 export default function AnunciePage() {
-  const [form, setForm] = useState({
-    businessName: "",
-    location: "",
-    contact: "",
-    itemName: "",
-    quantity: "",
-    price: "",
-    type: "doacao",
-    description: "",
-    imagePreview: "",
-  });
-
+  const [form, setForm] = useState(formInicial);
   const [items, setItems] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
-
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
+  // 🔄 Carrega anúncios do backend ao montar
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("anuncios")) || [];
-    setItems(stored);
+    async function carregarAnuncios() {
+      try {
+        const res = await apiFetch("/api/anuncios");
+        if (res.ok) {
+          const data = await res.json();
+          setItems(data);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar anúncios:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    carregarAnuncios();
   }, []);
 
   const handleChange = (e) => {
@@ -43,45 +70,56 @@ export default function AnunciePage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const newItem = {
-      ...form,
-      id: editingId || Date.now(),
-      date: new Date().toISOString(),
-    };
+    const newItem = { ...form };
 
+    // Geolocalização (opcional)
     try {
-      const position = await new Promise((resolve) => {
-        navigator.geolocation.getCurrentPosition(resolve, () => {}, { enableHighAccuracy: true, timeout: 8000 });
-      });
+      const position = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 })
+      );
       newItem.lat = position.coords.latitude;
       newItem.lng = position.coords.longitude;
     } catch {}
 
-    const stored = JSON.parse(localStorage.getItem("anuncios")) || [];
-    let updated = editingId 
-      ? stored.map(item => item.id === editingId ? newItem : item)
-      : [newItem, ...stored];
+    try {
+      if (editingId) {
+        // ✏️ Editar
+        const res = await apiFetch(`/api/anuncios/${editingId}`, {
+          method: "PUT",
+          body: JSON.stringify(newItem),
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setItems((prev) => prev.map((i) => (i._id === editingId ? updated : i)));
+          setSuccessMessage("✅ Anúncio atualizado!");
+        }
+      } else {
+        // ➕ Criar
+        const res = await apiFetch("/api/anuncios", {
+          method: "POST",
+          body: JSON.stringify(newItem),
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setItems((prev) => [created, ...prev]);
+          setSuccessMessage("✅ Anúncio publicado!");
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao salvar anúncio:", err);
+      setSuccessMessage("❌ Erro ao salvar anúncio.");
+    }
 
-    localStorage.setItem("anuncios", JSON.stringify(updated));
-    setItems(updated);
+    setForm(formInicial);
     setEditingId(null);
-    setSuccessMessage(editingId ? "✅ Anúncio atualizado!" : "✅ Anúncio publicado!");
-    resetForm();
     setIsSubmitting(false);
     setTimeout(() => setSuccessMessage(""), 4000);
   };
 
-  const resetForm = () => {
-    setForm({
-      businessName: "", location: "", contact: "", itemName: "", quantity: "",
-      price: "", type: "doacao", description: "", imagePreview: ""
-    });
-  };
-
   const startEdit = (item) => {
     setForm({ ...item });
-    setEditingId(item.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setEditingId(item._id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const openDeleteModal = (id) => {
@@ -89,11 +127,16 @@ export default function AnunciePage() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    const updated = items.filter(item => item.id !== itemToDelete);
-    setItems(updated);
-    localStorage.setItem("anuncios", JSON.stringify(updated));
-    setSuccessMessage("🗑️ Anúncio removido!");
+  const confirmDelete = async () => {
+    try {
+      const res = await apiFetch(`/api/anuncios/${itemToDelete}`, { method: "DELETE" });
+      if (res.ok) {
+        setItems((prev) => prev.filter((i) => i._id !== itemToDelete));
+        setSuccessMessage("🗑️ Anúncio removido!");
+      }
+    } catch (err) {
+      console.error("Erro ao remover:", err);
+    }
     setShowDeleteModal(false);
     setItemToDelete(null);
     setTimeout(() => setSuccessMessage(""), 3000);
@@ -104,24 +147,16 @@ export default function AnunciePage() {
       <div className="wrapper">
         <div className="header">
           <h1 style={{
-          fontSize: "clamp(2.5rem, 6vw, 4.2rem)",
-          fontWeight: "900",
-          marginBottom: "0.8rem",
-          background: "linear-gradient(90deg, var(--accent), #81c784, #4caf50)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-        }}>
-          📢Anuncie alimentos
-        </h1>
+            fontSize: "clamp(2.5rem, 6vw, 4.2rem)", fontWeight: "900", marginBottom: "0.8rem",
+            background: "linear-gradient(90deg, var(--accent), #81c784, #4caf50)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          }}>
+            📢 Anuncie alimentos
+          </h1>
+          <p style={{ fontSize: "1.4rem", color: "var(--text-secondary)", maxWidth: "800px", margin: "0 auto 1.5rem" }}>
+            Doe ou venda alimentos excedentes do seu negócio e ajude a combater o desperdício!
+          </p>
         </div>
-             <p style={{
-              fontSize: "1.4rem",
-              color: "var(--text-secondary)",
-              maxWidth: "800px",
-              margin: "0 auto 1.5rem",
-            }}>
-              Doe ou venda alimentos excedentes do seu negócio e ajude a combater o desperdício!
-             </p>
 
         {successMessage && <div className="success">{successMessage}</div>}
 
@@ -139,13 +174,11 @@ export default function AnunciePage() {
             <input name="contact" placeholder="(38) 99999-9999" value={form.contact} onChange={handleChange} required />
 
             <h3>Produto</h3>
-
             <label>Foto do produto (opcional)</label>
             <label className="upload-area">
               <input type="file" accept="image/*" onChange={handleImageChange} hidden />
-              <div className="upload-content">📸 Clique ou arraste uma foto<br/><small>PNG, JPG ou WEBP • Máx. 5MB</small></div>
+              <div className="upload-content">📸 Clique ou arraste uma foto<br /><small>PNG, JPG ou WEBP • Máx. 5MB</small></div>
             </label>
-
             {form.imagePreview && <img src={form.imagePreview} alt="Preview" className="preview-image" />}
 
             <label>Nome do alimento</label>
@@ -180,33 +213,17 @@ export default function AnunciePage() {
             </button>
           </form>
 
-          {/* Preview e Lista */}
+          {/* Lista */}
           <div className="preview">
-            <div className="card destaque">
-              {form.imagePreview && <img src={form.imagePreview} alt="Preview" className="preview-image" />}
-              <div className="top">
-                <span className={`badge ${form.type}`}>{form.type === "doacao" ? "🌱 Doação" : "🛒 Venda"}</span>
-                {form.type === "venda" && form.price && <span className="price">R$ {form.price}</span>}
-              </div>
-              <h2>{form.itemName || "Seu produto aqui"}</h2>
-              <p className="description">{form.description || "Descrição do produto..."}</p>
-              <div className="meta">
-                <span>📍 {form.location || "Localização"}</span>
-                <span>📦 {form.quantity || 0} un</span>
-              </div>
-              <div className="footer">
-                <strong>{form.businessName || "Seu negócio"}</strong>
-                <small>{form.contact || "Contato"}</small>
-              </div>
-            </div>
-
             <h4>Seus anúncios ({items.length})</h4>
 
-            {items.length === 0 ? (
+            {isLoading ? (
+              <p className="empty-message">Carregando anúncios...</p>
+            ) : items.length === 0 ? (
               <p className="empty-message">Nenhum anúncio publicado ainda.</p>
             ) : (
               items.map((item) => (
-                <div key={item.id} className="card small">
+                <div key={item._id} className="card small">
                   {item.imagePreview && <img src={item.imagePreview} alt={item.itemName} className="announce-image" />}
                   <div className="card-content">
                     <div className="card-header">
@@ -219,14 +236,10 @@ export default function AnunciePage() {
                       <span>📍 {item.location}</span>
                       <span>📦 {item.quantity} un</span>
                     </div>
-                    <div className="footer-info">
-                      <strong>{item.businessName}</strong>
-                      <small>{item.contact}</small>
-                    </div>
                   </div>
                   <div className="actions">
                     <button onClick={() => startEdit(item)} className="edit-btn">✏️ Editar</button>
-                    <button onClick={() => openDeleteModal(item.id)} className="delete-btn">🗑️</button>
+                    <button onClick={() => openDeleteModal(item._id)} className="delete-btn">🗑️</button>
                   </div>
                 </div>
               ))
@@ -235,7 +248,6 @@ export default function AnunciePage() {
         </div>
       </div>
 
-      {/* Modal de Exclusão */}
       {showDeleteModal && (
         <div className="modal-overlay">
           <div className="modal">
@@ -253,44 +265,37 @@ export default function AnunciePage() {
         .page { min-height: 100vh; background: linear-gradient(135deg, #e8f5e9, #f1f8e9); padding: 40px 20px; }
         .wrapper { max-width: 1200px; margin: auto; }
         .header { text-align: center; margin-bottom: 40px; }
-        .header h1 { font-size: 2.8rem; color: #1b5e20; }
-
+        .success { background: #e8f5e9; color: #2e7d32; padding: 14px; border-radius: 12px; text-align: center; font-weight: 600; margin-bottom: 20px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-
         .form { background: white; padding: 32px; border-radius: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
         label { display: block; margin: 16px 0 6px; font-weight: 600; color: #2e7d32; }
-        input, select, textarea { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid #ddd; }
-
+        input, select, textarea { width: 100%; padding: 14px; border-radius: 12px; border: 1.5px solid #ddd; box-sizing: border-box; }
         .row { display: flex; gap: 15px; }
         .col { flex: 1; }
-
         .upload-area { border: 2px dashed #66bb6a; border-radius: 16px; padding: 40px 20px; text-align: center; cursor: pointer; background: #f8fff8; }
-        .upload-area:hover { border-color: #2e7d32; }
-
         .preview-image { width: 100%; height: 210px; object-fit: cover; border-radius: 16px; margin: 12px 0; }
-
         .publish-btn { margin-top: 30px; padding: 18px; width: 100%; border: none; border-radius: 16px; background: linear-gradient(135deg, #2e7d32, #66bb6a); color: white; font-size: 1.2rem; font-weight: 700; cursor: pointer; }
-
-        .card.destaque { background: white; padding: 24px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 3px solid #a5d6a7; position: sticky; top: 20px; }
-        .top { display: flex; justify-content: space-between; margin-bottom: 12px; }
+        .publish-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        h4 { font-size: 1.2rem; color: #2e7d32; margin-bottom: 16px; }
+        .empty-message { color: #777; text-align: center; }
+        .card.small { background: white; border-radius: 20px; box-shadow: 0 10px 28px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; }
+        .announce-image { width: 100%; height: 190px; object-fit: cover; }
+        .card-content { padding: 20px; }
+        .card-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
         .badge { padding: 6px 16px; border-radius: 999px; font-weight: 700; }
         .badge.doacao { background: #e8f5e9; color: #2e7d32; }
         .badge.venda { background: #fff3e0; color: #ef6c00; }
-
-        .card.small { position: relative; background: white; border-radius: 20px; box-shadow: 0 10px 28px rgba(0,0,0,0.08); margin-bottom: 20px; overflow: hidden; }
-        .announce-image { width: 100%; height: 190px; object-fit: cover; }
-        .card-content { padding: 20px; }
+        .price { font-weight: 700; color: #2e7d32; }
+        .meta-info { font-size: 0.9rem; color: #666; display: flex; gap: 12px; margin-top: 8px; }
         .actions { padding: 0 20px 20px; display: flex; gap: 10px; }
         .edit-btn, .delete-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
         .edit-btn { background: #1976d2; color: white; }
         .delete-btn { background: #d32f2f; color: white; }
-
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
         .modal-buttons { margin-top: 25px; display: flex; gap: 15px; justify-content: center; }
-        .confirm-delete { background: #d32f2f; color: white; padding: 12px 28px; border: none; border-radius: 12px; font-weight: bold; }
-        .cancel-btn { background: #666; color: white; padding: 12px 28px; border: none; border-radius: 12px; }
-
+        .confirm-delete { background: #d32f2f; color: white; padding: 12px 28px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .cancel-btn { background: #666; color: white; padding: 12px 28px; border: none; border-radius: 12px; cursor: pointer; }
         @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
       `}</style>
     </div>

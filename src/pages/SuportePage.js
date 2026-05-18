@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { enviarContato } from "../api";
+import 'leaflet/dist/leaflet.css';
 
 export default function ContatoPage() {
   const [form, setForm] = useState({

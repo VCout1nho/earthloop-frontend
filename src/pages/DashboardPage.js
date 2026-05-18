@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaLeaf, FaShoppingCart } from "react-icons/fa";
+import 'leaflet/dist/leaflet.css';
 
 export default function DashboardPage() {
   const [usersActive, setUsersActive] = useState(0);
