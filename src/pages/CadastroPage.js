@@ -124,7 +124,7 @@ export default function CadastroPage() {
               <input name="nomeEstabelecimento" placeholder="Nome do estabelecimento" onChange={handleChange} style={inputStyle("nomeEstabelecimento")} />
               {errors.nomeEstabelecimento && <span className="error-msg">{errors.nomeEstabelecimento}</span>}
 
-              <input name="documentoDono" placeholder="CPF/CNPJ do dono" onChange={handleChange} style={inputStyle("documentoDono")} />
+              <input name="documentoDono" placeholder="CPF Propietário(a) or CNPJ Estabelecimento" onChange={handleChange} style={inputStyle("documentoDono")} />
               {errors.documentoDono && <span className="error-msg">{errors.documentoDono}</span>}
             </>
           )}
