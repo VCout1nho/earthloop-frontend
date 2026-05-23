@@ -78,7 +78,7 @@ export default function ContatoPage() {
     },
     {
       pergunta: "Vocês têm parceria com alguma ONG ou projeto social?",
-      resposta: "Sim! Estamos abertos a parcerias. Se você representa uma instituição social, entre em contato conosco pelo suporte."
+      resposta: "No momento não! Estamos abertos a parcerias. Se você representa uma instituição social, entre em contato conosco pelo suporte."
     }
   ];
 

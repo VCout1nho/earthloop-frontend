@@ -65,8 +65,8 @@ function CheckoutModal({ cart, totalPrice, onClose, onSuccess }) {
     setLoading(false);
     setStep(2);
 
-    confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 }, colors: ['#4caf50', '#81c784', '#2e7d32'] });
-    setTimeout(() => { onSuccess(); onClose(); }, 3000);
+confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 }, colors: ['#4caf50', '#81c784', '#2e7d32'] });
+onSuccess();
   };
 
   const inputStyle = (field) => ({
@@ -155,9 +155,17 @@ function CheckoutModal({ cart, totalPrice, onClose, onSuccess }) {
               Você receberá a confirmação em <strong>{form.email}</strong>.<br />
               Entrega em até <strong>5 dias úteis</strong>.
             </p>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "1rem" }}>
-              Fechando automaticamente...
-            </p>
+            <button
+  onClick={onClose}
+  style={{
+    marginTop: "1.5rem", padding: "0.9rem 2.5rem",
+    background: "var(--accent)", color: "white", border: "none",
+    borderRadius: "999px", fontWeight: "700", fontSize: "1.1rem",
+    cursor: "pointer",
+  }}
+>
+  Fechar ✓
+</button>
           </div>
         )}
       </div>
