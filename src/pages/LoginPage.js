@@ -35,6 +35,7 @@ export default function LoginPage() {
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
       setMsg({ text: "✅ Login realizado!", type: "success" });
+      window.dispatchEvent(new Event("auth-change")); 
 
       // Redireciona para onde o usuário tentou ir (ou para a home)
       setTimeout(() => navigate(from, { replace: true }), 1000);
