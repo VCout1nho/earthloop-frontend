@@ -72,14 +72,19 @@ export default function AnunciePage() {
 
     const newItem = { ...form };
 
-    // Geolocalização (opcional)
-    try {
-      const position = await new Promise((resolve, reject) =>
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 8000 })
-      );
-      newItem.lat = position.coords.latitude;
-      newItem.lng = position.coords.longitude;
-    } catch {}
+    // Geocodifica o endereço digitado
+try {
+  const enderecoEncoded = encodeURIComponent(form.location + ", Brasil");
+  const geoRes = await fetch(
+    `https://nominatim.openstreetmap.org/search?q=${enderecoEncoded}&format=json&limit=1`,
+    { headers: { "Accept-Language": "pt-BR" } }
+  );
+  const geoData = await geoRes.json();
+  if (geoData && geoData[0]) {
+    newItem.lat = parseFloat(geoData[0].lat);
+    newItem.lng = parseFloat(geoData[0].lon);
+  }
+} catch {}
 
     try {
       if (editingId) {
