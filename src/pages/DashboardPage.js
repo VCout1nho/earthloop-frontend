@@ -1,290 +1,114 @@
 import React, { useState, useEffect } from "react";
-import { FaLeaf, FaShoppingCart } from "react-icons/fa";
+import { FaLeaf, FaShoppingCart, FaUsers, FaBullhorn, FaHeadset, FaChartLine } from "react-icons/fa";
 import 'leaflet/dist/leaflet.css';
 
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 export default function DashboardPage() {
-  const [usersActive, setUsersActive] = useState(0);
-  const [growth, setGrowth] = useState(0);
-  const [monthlyGrowth, setMonthlyGrowth] = useState(0);
-  const [engagement, setEngagement] = useState(0);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [insights, setInsights] = useState("Carregando insights da IA...");
 
-  // Animação dos contadores
   useEffect(() => {
-    const duration = 2000; // 2 segundos
-    const steps = 60;
+    async function carregarDados() {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/dashboard`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setStats(data.stats);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dashboard:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    carregarDados();
 
-    // Usuários Ativos
-    const targetUsers = 1200;
-    const incrementUsers = targetUsers / steps;
-    let countUsers = 0;
-    const intervalUsers = setInterval(() => {
-      countUsers += incrementUsers;
-      setUsersActive(Math.min(Math.round(countUsers), targetUsers));
-      if (countUsers >= targetUsers) clearInterval(intervalUsers);
-    }, duration / steps);
-
-    // Crescimento
-    const targetGrowth = 23;
-    const incrementGrowth = targetGrowth / steps;
-    let countGrowth = 0;
-    const intervalGrowth = setInterval(() => {
-      countGrowth += incrementGrowth;
-      setGrowth(Math.min(Math.round(countGrowth), targetGrowth));
-      if (countGrowth >= targetGrowth) clearInterval(intervalGrowth);
-    }, duration / steps);
-
-    // Crescimento Mensal
-    const targetMonthly = 890;
-    const incrementMonthly = targetMonthly / steps;
-    let countMonthly = 0;
-    const intervalMonthly = setInterval(() => {
-      countMonthly += incrementMonthly;
-      setMonthlyGrowth(Math.min(Math.round(countMonthly), targetMonthly));
-      if (countMonthly >= targetMonthly) clearInterval(intervalMonthly);
-    }, duration / steps);
-
-    // Engajamento (exemplo: 78%)
-    const targetEngagement = 78;
-    const incrementEngagement = targetEngagement / steps;
-    let countEngagement = 0;
-    const intervalEngagement = setInterval(() => {
-      countEngagement += incrementEngagement;
-      setEngagement(Math.min(Math.round(countEngagement), targetEngagement));
-      if (countEngagement >= targetEngagement) clearInterval(intervalEngagement);
-    }, duration / steps);
-
-    // Insights da IA com efeito de typing
-    const text = "A IA detectou que 62% dos usuários ativos estão concentrados em Montes Claros e região. O pico de engajamento ocorre às 19h-21h. Sugestão: lançar campanha de doação de alimentos às 20h para maximizar alcance. Novos usuários crescem 23% esta semana.";
+    // Insights com efeito de typing
+    const text = "A IA detectou que 62% dos usuários ativos estão concentrados em Montes Claros e região. O pico de engajamento ocorre às 19h-21h. Sugestão: lançar campanha de doação de alimentos às 20h para maximizar alcance.";
     let i = 0;
     const typingInterval = setInterval(() => {
       setInsights(text.substring(0, i));
       i++;
       if (i > text.length) clearInterval(typingInterval);
-    }, 50);
-
-    return () => {
-      clearInterval(intervalUsers);
-      clearInterval(intervalGrowth);
-      clearInterval(intervalMonthly);
-      clearInterval(intervalEngagement);
-      clearInterval(typingInterval);
-    };
+    }, 30);
+    return () => clearInterval(typingInterval);
   }, []);
 
+  // Animação de contador
+  function AnimatedNumber({ target, prefix = "", suffix = "" }) {
+    const [value, setValue] = useState(0);
+    useEffect(() => {
+      if (!target && target !== 0) return;
+      let start = 0;
+      const steps = 60;
+      const increment = target / steps;
+      const interval = setInterval(() => {
+        start += increment;
+        setValue(Math.min(Math.round(start), target));
+        if (start >= target) clearInterval(interval);
+      }, 2000 / steps);
+      return () => clearInterval(interval);
+    }, [target]);
+    return <span>{prefix}{value.toLocaleString()}{suffix}</span>;
+  }
+
+  const cards = stats ? [
+    { icon: <FaUsers size={32} color="var(--accent)" />, label: "Total de Usuários", value: stats.totalUsers, suffix: "", color: "var(--accent)" },
+    { icon: <FaChartLine size={32} color="#4caf50" />, label: "Crescimento este mês", value: stats.growth, suffix: "%", color: "#4caf50", prefix: stats.growth >= 0 ? "+" : "" },
+    { icon: <FaBullhorn size={32} color="#f59e0b" />, label: "Anúncios publicados", value: stats.totalAnuncios, suffix: "", color: "#f59e0b" },
+    { icon: <FaHeadset size={32} color="#6366f1" />, label: "Tickets de suporte", value: stats.totalTickets, suffix: "", color: "#6366f1" },
+    { icon: <FaUsers size={32} color="#2e7d32" />, label: "Novos usuários este mês", value: stats.usersEsseMes, suffix: "", color: "#2e7d32" },
+  ] : [];
+
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "var(--bg-primary)",
-      color: "var(--text-primary)",
-      padding: "2rem 1.5rem",
-    }}>
-      <h1 style={{
-        fontSize: "clamp(2rem, 5vw, 3.5rem)",
-        fontWeight: "800",
-        marginBottom: "2.5rem",
-        background: "linear-gradient(90deg, var(--accent), #81c784)",
-        WebkitBackgroundClip: "text",
-        WebkitTextFillColor: "transparent",
-        backgroundClip: "text",
-        textAlign: "center",
-      }}>
-        Dashboard Inteligente
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", color: "var(--text-primary)", padding: "2rem 1.5rem" }}>
+      <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: "800", marginBottom: "2.5rem", background: "linear-gradient(90deg, var(--accent), #81c784)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center" }}>
+        📊 Dashboard
       </h1>
 
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-        gap: "1.5rem",
-        maxWidth: "1400px",
-        margin: "0 auto",
-      }}>
-        {/* Card Usuários Ativos */}
-        <div style={{
-          background: "var(--bg-card)",
-          borderRadius: "16px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-          transition: "all 0.3s ease",
-          border: "1px solid rgba(var(--accent), 0.15)",
-        }}
-        onMouseEnter={e => e.currentTarget.style.transform = "translateY(-10px)"}
-        onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-            <FaLeaf size={32} color="var(--accent)" />
-            <h3 style={{ fontSize: "1.5rem", margin: 0 }}>Usuários Ativos</h3>
-          </div>
-          <div style={{
-            fontSize: "3.5rem",
-            fontWeight: "800",
-            color: "var(--accent)",
-            textAlign: "center",
-          }}>
-            {usersActive.toLocaleString()}
-          </div>
-          <p style={{ textAlign: "center", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-            Hoje • Atualizado agora
-          </p>
+      {loading ? (
+        <div style={{ textAlign: "center", padding: "4rem", color: "var(--text-secondary)", fontSize: "1.2rem" }}>
+          Carregando dados reais...
         </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1.5rem", maxWidth: "1400px", margin: "0 auto" }}>
 
-        {/* Card Crescimento */}
-        <div style={{
-          background: "var(--bg-card)",
-          borderRadius: "16px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-          transition: "all 0.3s ease",
-          border: "1px solid rgba(var(--accent), 0.15)",
-        }}
-        onMouseEnter={e => e.currentTarget.style.transform = "translateY(-10px)"}
-        onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-            <FaLeaf size={32} color="var(--accent)" />
-            <h3 style={{ fontSize: "1.5rem", margin: 0 }}>Crescimento</h3>
-          </div>
-          <div style={{
-            fontSize: "3.5rem",
-            fontWeight: "800",
-            color: "#4caf50",
-            textAlign: "center",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "0.5rem",
-          }}>
-            +{growth}%
-            <span style={{ fontSize: "1.5rem", color: "#4caf50" }}>↑</span>
-          </div>
-          <p style={{ textAlign: "center", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-            Esta semana
-          </p>
-        </div>
-
-        {/* Card Usuários Ativos Mensal */}
-        <div style={{
-          background: "var(--bg-card)",
-          borderRadius: "16px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-          transition: "all 0.3s ease",
-          border: "1px solid rgba(var(--accent), 0.15)",
-        }}
-        onMouseEnter={e => e.currentTarget.style.transform = "translateY(-10px)"}
-        onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-            <FaShoppingCart size={32} color="var(--accent)" />
-            <h3 style={{ fontSize: "1.5rem", margin: 0 }}>Usuários Ativos Mensal</h3>
-          </div>
-          <div style={{
-            fontSize: "3.5rem",
-            fontWeight: "800",
-            color: "var(--accent)",
-            textAlign: "center",
-          }}>
-            {monthlyGrowth.toLocaleString()}
-          </div>
-          <p style={{ textAlign: "center", color: "var(--text-secondary)", marginTop: "0.5rem" }}>
-            Este mês
-          </p>
-        </div>
-
-        {/* Card Engajamento */}
-        <div style={{
-          background: "var(--bg-card)",
-          borderRadius: "16px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-          transition: "all 0.3s ease",
-          border: "1px solid rgba(var(--accent), 0.15)",
-          gridColumn: "span 2",
-        }}
-        onMouseEnter={e => e.currentTarget.style.transform = "translateY(-10px)"}
-        onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-            <FaLeaf size={32} color="var(--accent)" />
-            <h3 style={{ fontSize: "1.5rem", margin: 0 }}>Engajamento</h3>
-          </div>
-          <div style={{
-            fontSize: "4rem",
-            fontWeight: "900",
-            color: "#4caf50",
-            textAlign: "center",
-            margin: "1rem 0",
-          }}>
-            {engagement}%
-          </div>
-          <div style={{
-            height: "20px",
-            background: "rgba(76,175,80,0.2)",
-            borderRadius: "10px",
-            overflow: "hidden",
-          }}>
-            <div style={{
-              height: "100%",
-              width: `${engagement}%`,
-              background: "linear-gradient(90deg, #4caf50, #81c784)",
-              transition: "width 2s ease-out",
-            }} />
-          </div>
-          <p style={{ textAlign: "center", color: "var(--text-secondary)", marginTop: "1rem" }}>
-            Taxa média de interação esta semana
-          </p>
-        </div>
-
-        {/* Insights da IA */}
-        <div style={{
-          background: "var(--bg-card)",
-          borderRadius: "16px",
-          padding: "2rem",
-          boxShadow: "0 10px 30px rgba(0,0,0,0.15)",
-          transition: "all 0.3s ease",
-          border: "1px solid rgba(var(--accent), 0.15)",
-          gridColumn: "span 2",
-        }}
-        onMouseEnter={e => e.currentTarget.style.transform = "translateY(-10px)"}
-        onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
-            <div style={{
-              width: "40px",
-              height: "40px",
-              background: "var(--accent)",
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "1.5rem",
-            }}>
-              IA
+          {cards.map((card, i) => (
+            <div key={i} style={{ background: "var(--bg-card)", borderRadius: "16px", padding: "2rem", boxShadow: "0 10px 30px rgba(0,0,0,0.15)", transition: "all 0.3s ease", border: "1px solid rgba(0,0,0,0.05)" }}
+              onMouseEnter={e => e.currentTarget.style.transform = "translateY(-8px)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+                {card.icon}
+                <h3 style={{ fontSize: "1.1rem", margin: 0, color: "var(--text-secondary)" }}>{card.label}</h3>
+              </div>
+              <div style={{ fontSize: "3rem", fontWeight: "800", color: card.color, textAlign: "center" }}>
+                <AnimatedNumber target={card.value} prefix={card.prefix} suffix={card.suffix} />
+              </div>
             </div>
-            <h3 style={{ fontSize: "1.5rem", margin: 0 }}>Insights da IA</h3>
-          </div>
-          <p style={{
-            fontSize: "1.2rem",
-            lineHeight: "1.7",
-            color: "var(--text-primary)",
-            minHeight: "120px",
-            whiteSpace: "pre-wrap",
-          }}>
-            {insights}
-          </p>
-        </div>
-      </div>
+          ))}
 
-      {/* Rodapé */}
-      <footer style={{
-        padding: "4rem 2rem 2rem",
-        textAlign: "center",
-        color: "var(--text-muted)",
-        fontSize: "1rem",
-        borderTop: "1px solid var(--border)",
-      }}>
-        EarthLoop © Copyright {new Date().getFullYear()} • Dashboard Inteligente para um planeta mais verde
+          {/* Insights da IA */}
+          <div style={{ background: "var(--bg-card)", borderRadius: "16px", padding: "2rem", boxShadow: "0 10px 30px rgba(0,0,0,0.15)", border: "1px solid rgba(0,0,0,0.05)", gridColumn: "span 2" }}
+            onMouseEnter={e => e.currentTarget.style.transform = "translateY(-8px)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+              <div style={{ width: "40px", height: "40px", background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "800", fontSize: "0.9rem" }}>IA</div>
+              <h3 style={{ fontSize: "1.5rem", margin: 0 }}>Insights da IA</h3>
+            </div>
+            <p style={{ fontSize: "1.1rem", lineHeight: "1.7", color: "var(--text-primary)", minHeight: "80px", whiteSpace: "pre-wrap" }}>
+              {insights}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <footer style={{ padding: "4rem 2rem 2rem", textAlign: "center", color: "var(--text-muted)", fontSize: "1rem", borderTop: "1px solid var(--border)", marginTop: "3rem" }}>
+        EarthLoop © Copyright {new Date().getFullYear()} • Dados em tempo real
       </footer>
     </div>
   );

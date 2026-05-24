@@ -1,28 +1,27 @@
-// v3
+// v4 - com responsividade mobile
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaChartBar, FaMapMarkedAlt, FaStore, FaRobot, FaBullhorn, FaHeadset, FaUserPlus, FaSignInAlt, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaChartBar, FaMapMarkedAlt, FaStore, FaRobot, FaBullhorn, FaHeadset, FaUserPlus, FaSignInAlt, FaSignOutAlt, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [menuAberto, setMenuAberto] = useState(false);
 
   const lerUsuario = () => {
     const stored = localStorage.getItem("user");
     setUser(stored ? JSON.parse(stored) : null);
   };
 
-  // Lê o usuário ao montar e sempre que a rota muda
-  useEffect(() => {
-    lerUsuario();
-  }, [location.pathname]);
-
-  // Escuta evento customizado disparado pelo login/logout
+  useEffect(() => { lerUsuario(); }, [location.pathname]);
   useEffect(() => {
     window.addEventListener("auth-change", lerUsuario);
     return () => window.removeEventListener("auth-change", lerUsuario);
   }, []);
+
+  // Fecha menu ao navegar
+  const irPara = (path) => { navigate(path); setMenuAberto(false); };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -30,6 +29,7 @@ export default function Header() {
     setUser(null);
     window.dispatchEvent(new Event("auth-change"));
     navigate("/");
+    setMenuAberto(false);
   };
 
   const menuItems = [
@@ -45,109 +45,99 @@ export default function Header() {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      height: '76px',
-      background: '#2e7d32',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-      zIndex: 1000,
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 2rem',
-      gap: '2.5rem',
-      color: 'white',
-    }}>
+    <>
+      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '76px', background: '#2e7d32', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 1000, display: 'flex', alignItems: 'center', padding: '0 2rem', gap: '2rem', color: 'white' }}>
 
-      {/* Logo + Nome */}
-      <div onClick={() => navigate('/')} style={{
-        display: 'flex', alignItems: 'center', gap: '12px',
-        cursor: 'pointer', fontWeight: '700', fontSize: '1.75rem',
-      }}>
-        <img src="/logo.png" alt="EarthLoop Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
-        <span>EarthLoop</span>
-      </div>
+        {/* Logo */}
+        <div onClick={() => irPara('/')} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '1.75rem', flexShrink: 0 }}>
+          <img src="/logo.png" alt="EarthLoop Logo" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
+          <span>EarthLoop</span>
+        </div>
 
-      {/* Menu Principal */}
-      <nav style={{ display: 'flex', gap: '6px', flex: 1 }}>
-        {menuItems.map((item) => (
-          <div key={item.path} onClick={() => navigate(item.path)} style={{
-            padding: '12px 20px', borderRadius: '999px',
-            background: isActive(item.path) ? 'white' : 'transparent',
-            color: isActive(item.path) ? '#2e7d32' : 'white',
-            fontWeight: '600', cursor: 'pointer', display: 'flex',
-            alignItems: 'center', gap: '8px', transition: 'all 0.3s ease', fontSize: '1.05rem',
-          }}>
-            {item.icon}
-            {item.name}
-          </div>
-        ))}
-      </nav>
+        {/* Menu desktop */}
+        <nav style={{ display: 'flex', gap: '4px', flex: 1, flexWrap: 'nowrap', overflow: 'hidden' }} className="desktop-nav">
+          {menuItems.map((item) => (
+            <div key={item.path} onClick={() => irPara(item.path)}
+              style={{ padding: '10px 14px', borderRadius: '999px', background: isActive(item.path) ? 'white' : 'transparent', color: isActive(item.path) ? '#2e7d32' : 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.3s ease', fontSize: '0.95rem', whiteSpace: 'nowrap' }}>
+              {item.icon}{item.name}
+            </div>
+          ))}
+        </nav>
 
-      {/* Área de autenticação */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {user ? (
-          <>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              background: 'rgba(255,255,255,0.15)', padding: '10px 18px',
-              borderRadius: '999px', fontWeight: '600', fontSize: '1rem',
-            }}>
-              <div style={{
-                width: '32px', height: '32px', borderRadius: '50%',
-                background: 'white', color: '#2e7d32', display: 'flex',
-                alignItems: 'center', justifyContent: 'center',
-                fontWeight: '800', fontSize: '1rem',
-              }}>
-                {(user.nome || user.email || "U")[0].toUpperCase()}
+        {/* Auth desktop */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }} className="desktop-auth">
+          {user ? (
+            <>
+              <div onClick={() => irPara('/perfil')} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', padding: '8px 16px', borderRadius: '999px', fontWeight: '600', fontSize: '0.95rem', cursor: 'pointer' }}>
+                <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'white', color: '#2e7d32', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '0.9rem' }}>
+                  {(user.nome || user.email || "U")[0].toUpperCase()}
+                </div>
+                <span>{user.nome || user.email}</span>
               </div>
-              <span>{user.nome || user.email}</span>
-            </div>
+              <div onClick={handleLogout} style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', border: '2px solid rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
+                <FaSignOutAlt /> Sair
+              </div>
+            </>
+          ) : (
+            <>
+              <div onClick={() => irPara('/cadastro')} style={{ padding: '10px 18px', borderRadius: '999px', background: 'rgba(255,255,255,0.15)', color: 'white', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', border: '2px solid rgba(255,255,255,0.4)', whiteSpace: 'nowrap' }}>
+                <FaUserPlus /> Cadastro
+              </div>
+              <div onClick={() => irPara('/login')} style={{ padding: '10px 18px', borderRadius: '999px', background: 'white', color: '#2e7d32', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+                <FaSignInAlt /> Entrar
+              </div>
+            </>
+          )}
+        </div>
 
-            <div onClick={handleLogout} style={{
-              padding: '11px 22px', borderRadius: '999px',
-              background: 'rgba(255,255,255,0.15)', color: 'white',
-              fontWeight: '700', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', gap: '8px', transition: 'all 0.3s ease',
-              border: '2px solid rgba(255,255,255,0.4)', whiteSpace: 'nowrap',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-            >
-              <FaSignOutAlt />
-              Sair
-            </div>
-          </>
-        ) : (
-          <>
-            <div onClick={() => navigate('/cadastro')} style={{
-              padding: '11px 22px', borderRadius: '999px',
-              background: 'rgba(255,255,255,0.15)', color: 'white',
-              fontWeight: '700', cursor: 'pointer', display: 'flex',
-              alignItems: 'center', gap: '8px', transition: 'all 0.3s ease',
-              border: '2px solid rgba(255,255,255,0.4)', whiteSpace: 'nowrap',
-            }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.25)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
-            >
-              <FaUserPlus />
-              Crie sua conta
-            </div>
+        {/* Botão hamburguer (mobile) */}
+        <button onClick={() => setMenuAberto(!menuAberto)} className="hamburger"
+          style={{ display: 'none', background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', marginLeft: 'auto' }}>
+          {menuAberto ? <FaTimes /> : <FaBars />}
+        </button>
+      </header>
 
-            <div onClick={() => navigate('/login')} style={{
-              padding: '11px 22px', borderRadius: '999px',
-              background: 'white', color: '#2e7d32', fontWeight: '700',
-              cursor: 'pointer', display: 'flex', alignItems: 'center',
-              gap: '8px', transition: 'all 0.3s ease', whiteSpace: 'nowrap',
-            }}>
-              <FaSignInAlt />
-              Entre
+      {/* Menu mobile */}
+      {menuAberto && (
+        <div style={{ position: 'fixed', top: '76px', left: 0, right: 0, bottom: 0, background: '#1b5e20', zIndex: 999, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {menuItems.map((item) => (
+            <div key={item.path} onClick={() => irPara(item.path)}
+              style={{ padding: '16px 20px', borderRadius: '14px', background: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.1)', color: isActive(item.path) ? '#2e7d32' : 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+              {item.icon}{item.name}
             </div>
-          </>
-        )}
-      </div>
-    </header>
+          ))}
+
+          <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {user ? (
+              <>
+                <div onClick={() => irPara('/perfil')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+                  <FaUser /> Meu Perfil ({user.nome || user.email})
+                </div>
+                <div onClick={handleLogout} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(239,68,68,0.2)', color: '#fca5a5', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+                  <FaSignOutAlt /> Sair da conta
+                </div>
+              </>
+            ) : (
+              <>
+                <div onClick={() => irPara('/cadastro')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+                  <FaUserPlus /> Criar conta
+                </div>
+                <div onClick={() => irPara('/login')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'white', color: '#2e7d32', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+                  <FaSignInAlt /> Entrar
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 768px) {
+          .desktop-nav { display: none !important; }
+          .desktop-auth { display: none !important; }
+          .hamburger { display: block !important; }
+        }
+      `}</style>
+    </>
   );
 }

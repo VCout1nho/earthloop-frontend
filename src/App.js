@@ -12,6 +12,7 @@ import AnunciePage from './pages/AnunciePage';
 import SuportePage from './pages/SuportePage';
 import CadastroPage from './pages/CadastroPage';
 import LoginPage from './pages/LoginPage';
+import PerfilPage from './pages/PerfilPage';
 
 import './App.css';
 
@@ -32,6 +33,7 @@ function App() {
           <Route path="/painel" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
           <Route path="/ai" element={<PrivateRoute><AIPage /></PrivateRoute>} />
           <Route path="/anuncie" element={<PrivateRoute><AnunciePage /></PrivateRoute>} />
+          <Route path="/perfil" element={<PrivateRoute><PerfilPage /></PrivateRoute>} />
         </Route>
       </Routes>
     </BrowserRouter>
