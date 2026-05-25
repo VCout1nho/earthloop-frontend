@@ -97,47 +97,44 @@ export default function Header() {
 </button>
       </header>
 
-      {/* Menu mobile */}
-      {menuAberto && (
-<div className="mobile-menu" style={{ position: 'fixed', top: '76px', left: 0, right: 0, bottom: 0, background: '#1b5e20', zIndex: 999, padding: '1.5rem', overflowY: 'auto', flexDirection: 'column', gap: '8px' }}>          {menuItems.map((item) => (
-            <div key={item.path} onClick={() => irPara(item.path)}
-              style={{ padding: '16px 20px', borderRadius: '14px', background: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.1)', color: isActive(item.path) ? '#2e7d32' : 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
-              {item.icon}{item.name}
-            </div>
-          ))}
+     {/* Menu mobile */}
+<div className="mobile-menu" style={{ position: 'fixed', top: '76px', left: 0, right: 0, bottom: 0, background: '#1b5e20', zIndex: 999, padding: '1.5rem', overflowY: 'auto', flexDirection: 'column', gap: '8px', display: menuAberto ? 'flex' : 'none' }}>
+  {menuItems.map((item) => (
+    <div key={item.path} onClick={() => irPara(item.path)}
+      style={{ padding: '16px 20px', borderRadius: '14px', background: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.1)', color: isActive(item.path) ? '#2e7d32' : 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+      {item.icon}{item.name}
+    </div>
+  ))}
 
-          <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {user ? (
-              <>
-                <div onClick={() => irPara('/perfil')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
-                  <FaUser /> Meu Perfil ({user.nome || user.email})
-                </div>
-                <div onClick={handleLogout} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(239,68,68,0.2)', color: '#fca5a5', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
-                  <FaSignOutAlt /> Sair da conta
-                </div>
-              </>
-            ) : (
-              <>
-                <div onClick={() => irPara('/cadastro')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
-                  <FaUserPlus /> Criar conta
-                </div>
-                <div onClick={() => irPara('/login')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'white', color: '#2e7d32', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
-                  <FaSignInAlt /> Entrar
-                </div>
-              </>
-            )}
-          </div>
+  <div style={{ marginTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.2)', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    {user ? (
+      <>
+        <div onClick={() => irPara('/perfil')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+          <FaUser /> Meu Perfil ({user.nome || user.email})
         </div>
-      )}
+        <div onClick={handleLogout} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(239,68,68,0.2)', color: '#fca5a5', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+          <FaSignOutAlt /> Sair da conta
+        </div>
+      </>
+    ) : (
+      <>
+        <div onClick={() => irPara('/cadastro')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+          <FaUserPlus /> Criar conta
+        </div>
+        <div onClick={() => irPara('/login')} style={{ padding: '16px 20px', borderRadius: '14px', background: 'white', color: '#2e7d32', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
+          <FaSignInAlt /> Entrar
+        </div>
+      </>
+    )}
+  </div>
+</div>
 
       <style>{`
   @media screen and (max-width: 768px) {
     .desktop-nav { display: none !important; }
     .desktop-auth { display: none !important; }
-    .mobile-menu { display: flex !important; }
   }
   @media screen and (min-width: 769px) {
-    .mobile-menu { display: none !important; }
     .hamburger { display: none !important; }
   }
 `}</style>
