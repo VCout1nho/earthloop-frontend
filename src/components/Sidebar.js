@@ -1,5 +1,4 @@
-// v4 - com responsividade mobile
-import React, { useState, useEffect } from 'react';
+// v5 - mobile fix final
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaChartBar, FaMapMarkedAlt, FaStore, FaRobot, FaBullhorn, FaHeadset, FaUserPlus, FaSignInAlt, FaSignOutAlt, FaUser, FaBars, FaTimes } from 'react-icons/fa';
 
