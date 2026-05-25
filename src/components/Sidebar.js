@@ -91,11 +91,8 @@ export default function Header() {
         </div>
 
         {/* Botão hamburguer (mobile) */}
-<button onClick={() => setMenuAberto(!menuAberto)} className="hamburger"
-  style={{ 
-    background: 'none', border: 'none', color: 'white', 
-    fontSize: '1.8rem', cursor: 'pointer', marginLeft: 'auto' 
-  }}>
+<button onClick={() => { setMenuAberto(!menuAberto); console.log("menu:", !menuAberto); }} className="hamburger"
+  style={{ background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', marginLeft: 'auto' }}>
   {menuAberto ? <FaTimes /> : <FaBars />}
 </button>
       </header>
