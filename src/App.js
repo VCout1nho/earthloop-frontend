@@ -13,6 +13,7 @@ import SuportePage from './pages/SuportePage';
 import CadastroPage from './pages/CadastroPage';
 import LoginPage from './pages/LoginPage';
 import PerfilPage from './pages/PerfilPage';
+import AnuncioDetalhePage from './pages/AnuncioDetalhePage';
 
 import './App.css';
 
@@ -28,6 +29,7 @@ function App() {
           <Route path="/suporte" element={<SuportePage />} />
           <Route path="/cadastro" element={<CadastroPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/anuncio/:id" element={<AnuncioDetalhePage />} />
 
           {/* Rotas protegidas — exigem login */}
           <Route path="/painel" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />

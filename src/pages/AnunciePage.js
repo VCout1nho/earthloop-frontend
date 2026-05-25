@@ -1,13 +1,9 @@
-// src/pages/AnunciePage.js
-// Melhoria: migrado de localStorage para backend real.
-// Requer as rotas /api/anuncios no server.js (ver backend-anuncios.js).
-
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import 'leaflet/dist/leaflet.css';
 
 const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-// Helper autenticado reutilizável
 async function apiFetch(path, options = {}) {
   const token = localStorage.getItem("token");
   return fetch(`${BASE_URL}${path}`, {
@@ -26,8 +22,10 @@ const formInicial = {
 };
 
 export default function AnunciePage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState(formInicial);
   const [items, setItems] = useState([]);
+  const [itemsFiltrados, setItemsFiltrados] = useState([]);
   const [successMessage, setSuccessMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,7 +33,11 @@ export default function AnunciePage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
-  // 🔄 Carrega anúncios do backend ao montar
+  // Filtros
+  const [busca, setBusca] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("todos");
+  const [filtroCidade, setFiltroCidade] = useState("");
+
   useEffect(() => {
     async function carregarAnuncios() {
       try {
@@ -43,6 +45,7 @@ export default function AnunciePage() {
         if (res.ok) {
           const data = await res.json();
           setItems(data);
+          setItemsFiltrados(data);
         }
       } catch (err) {
         console.error("Erro ao carregar anúncios:", err);
@@ -52,6 +55,31 @@ export default function AnunciePage() {
     }
     carregarAnuncios();
   }, []);
+
+  // Aplica filtros sempre que mudam
+  useEffect(() => {
+    let resultado = [...items];
+
+    if (busca.trim()) {
+      resultado = resultado.filter(item =>
+        item.itemName?.toLowerCase().includes(busca.toLowerCase()) ||
+        item.businessName?.toLowerCase().includes(busca.toLowerCase()) ||
+        item.description?.toLowerCase().includes(busca.toLowerCase())
+      );
+    }
+
+    if (filtroTipo !== "todos") {
+      resultado = resultado.filter(item => item.type === filtroTipo);
+    }
+
+    if (filtroCidade.trim()) {
+      resultado = resultado.filter(item =>
+        item.location?.toLowerCase().includes(filtroCidade.toLowerCase())
+      );
+    }
+
+    setItemsFiltrados(resultado);
+  }, [busca, filtroTipo, filtroCidade, items]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -72,23 +100,21 @@ export default function AnunciePage() {
 
     const newItem = { ...form };
 
-    // Geocodifica o endereço digitado
-try {
-  const enderecoEncoded = encodeURIComponent(form.location + ", Brasil");
-  const geoRes = await fetch(
-    `https://nominatim.openstreetmap.org/search?q=${enderecoEncoded}&format=json&limit=1`,
-    { headers: { "Accept-Language": "pt-BR" } }
-  );
-  const geoData = await geoRes.json();
-  if (geoData && geoData[0]) {
-    newItem.lat = parseFloat(geoData[0].lat);
-    newItem.lng = parseFloat(geoData[0].lon);
-  }
-} catch {}
+    try {
+      const enderecoEncoded = encodeURIComponent(form.location + ", Brasil");
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${enderecoEncoded}&format=json&limit=1`,
+        { headers: { "Accept-Language": "pt-BR" } }
+      );
+      const geoData = await geoRes.json();
+      if (geoData && geoData[0]) {
+        newItem.lat = parseFloat(geoData[0].lat);
+        newItem.lng = parseFloat(geoData[0].lon);
+      }
+    } catch {}
 
     try {
       if (editingId) {
-        // ✏️ Editar
         const res = await apiFetch(`/api/anuncios/${editingId}`, {
           method: "PUT",
           body: JSON.stringify(newItem),
@@ -99,7 +125,6 @@ try {
           setSuccessMessage("✅ Anúncio atualizado!");
         }
       } else {
-        // ➕ Criar
         const res = await apiFetch("/api/anuncios", {
           method: "POST",
           body: JSON.stringify(newItem),
@@ -146,6 +171,12 @@ try {
     setItemToDelete(null);
     setTimeout(() => setSuccessMessage(""), 3000);
   };
+
+  // Cidades únicas para o filtro
+  const cidades = [...new Set(items.map(i => {
+    const partes = i.location?.split(",");
+    return partes?.[partes.length - 1]?.trim() || "";
+  }).filter(Boolean))];
 
   return (
     <div className="page">
@@ -218,16 +249,41 @@ try {
             </button>
           </form>
 
-          {/* Lista */}
+          {/* Lista com filtros */}
           <div className="preview">
-            <h4>Seus anúncios ({items.length})</h4>
+            <h4>Anúncios ({itemsFiltrados.length})</h4>
+
+            {/* Filtros */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
+              <input
+                placeholder="🔍 Buscar por produto, negócio..."
+                value={busca}
+                onChange={e => setBusca(e.target.value)}
+                style={{ padding: "12px", borderRadius: "10px", border: "1.5px solid #ddd", fontSize: "1rem", width: "100%", boxSizing: "border-box" }}
+              />
+              <div style={{ display: "flex", gap: "8px" }}>
+                {["todos", "doacao", "venda"].map(tipo => (
+                  <button key={tipo} onClick={() => setFiltroTipo(tipo)}
+                    style={{ flex: 1, padding: "10px", borderRadius: "10px", border: "none", background: filtroTipo === tipo ? "#2e7d32" : "#f0f0f0", color: filtroTipo === tipo ? "white" : "#444", fontWeight: "600", cursor: "pointer", fontSize: "0.9rem" }}>
+                    {tipo === "todos" ? "🗂️ Todos" : tipo === "doacao" ? "🌱 Doação" : "🛒 Venda"}
+                  </button>
+                ))}
+              </div>
+              {cidades.length > 0 && (
+                <select value={filtroCidade} onChange={e => setFiltroCidade(e.target.value)}
+                  style={{ padding: "12px", borderRadius: "10px", border: "1.5px solid #ddd", fontSize: "1rem" }}>
+                  <option value="">📍 Todas as cidades</option>
+                  {cidades.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              )}
+            </div>
 
             {isLoading ? (
               <p className="empty-message">Carregando anúncios...</p>
-            ) : items.length === 0 ? (
-              <p className="empty-message">Nenhum anúncio publicado ainda.</p>
+            ) : itemsFiltrados.length === 0 ? (
+              <p className="empty-message">Nenhum anúncio encontrado.</p>
             ) : (
-              items.map((item) => (
+              itemsFiltrados.map((item) => (
                 <div key={item._id} className="card small">
                   {item.imagePreview && <img src={item.imagePreview} alt={item.itemName} className="announce-image" />}
                   <div className="card-content">
@@ -243,6 +299,7 @@ try {
                     </div>
                   </div>
                   <div className="actions">
+                    <button onClick={() => navigate(`/anuncio/${item._id}`)} className="view-btn">👁️ Ver</button>
                     <button onClick={() => startEdit(item)} className="edit-btn">✏️ Editar</button>
                     <button onClick={() => openDeleteModal(item._id)} className="delete-btn">🗑️</button>
                   </div>
@@ -293,9 +350,10 @@ try {
         .price { font-weight: 700; color: #2e7d32; }
         .meta-info { font-size: 0.9rem; color: #666; display: flex; gap: 12px; margin-top: 8px; }
         .actions { padding: 0 20px 20px; display: flex; gap: 10px; }
-        .edit-btn, .delete-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .view-btn, .edit-btn, .delete-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .view-btn { background: #2e7d32; color: white; }
         .edit-btn { background: #1976d2; color: white; }
-        .delete-btn { background: #d32f2f; color: white; }
+        .delete-btn { background: #d32f2f; color: white; flex: 0; padding: 12px 16px; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 1000; }
         .modal { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
         .modal-buttons { margin-top: 25px; display: flex; gap: 15px; justify-content: center; }
