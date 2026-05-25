@@ -139,9 +139,19 @@ function MapPage() {
                 </>
               )}
             </div>
-            <button onClick={() => alert(`✅ Contato solicitado com ${selectedItem.businessName || selectedItem.name}!`)}
-              style={{ marginTop: '30px', width: '100%', padding: '16px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer' }}>
-              Entrar em Contato
+            <button> onClick={() => {
+  const telefone = (selectedItem.contact || selectedItem.phone || "").replace(/\D/g, "");
+  const nome = selectedItem.businessName || selectedItem.name || "estabelecimento";
+  const produto = selectedItem.itemName || "";
+  const mensagem = produto
+    ? `Olá! Vi seu anúncio de *${produto}* no EarthLoop e tenho interesse!`
+    : `Olá! Vi o *${nome}* no EarthLoop e gostaria de mais informações.`;
+  if (telefone) {
+    window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`, "_blank");
+  } else {
+    alert(`Entre em contato com ${nome} pelo telefone informado.`);
+  }
+}}
             </button>
           </div>
         )}
