@@ -139,7 +139,7 @@ function MapPage() {
                 </>
               )}
             </div>
-            <button> onClick={() => {
+            <button onClick={() => {
   const telefone = (selectedItem.contact || selectedItem.phone || "").replace(/\D/g, "");
   const nome = selectedItem.businessName || selectedItem.name || "estabelecimento";
   const produto = selectedItem.itemName || "";
@@ -152,7 +152,10 @@ function MapPage() {
     alert(`Entre em contato com ${nome} pelo telefone informado.`);
   }
 }}
-            </button>
+  style={{ marginTop: '30px', width: '100%', padding: '16px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer' }}
+>
+  📲 Entrar em Contato via WhatsApp
+</button>
           </div>
         )}
 
