@@ -91,15 +91,19 @@ export default function Header() {
         </div>
 
         {/* Botão hamburguer (mobile) */}
-        <button onClick={() => setMenuAberto(!menuAberto)} className="hamburger"
-          style={{ display: 'none', background: 'none', border: 'none', color: 'white', fontSize: '1.8rem', cursor: 'pointer', marginLeft: 'auto' }}>
-          {menuAberto ? <FaTimes /> : <FaBars />}
-        </button>
+<button onClick={() => setMenuAberto(!menuAberto)}
+  style={{ 
+    display: window.innerWidth <= 768 ? 'block' : 'none',
+    background: 'none', border: 'none', color: 'white', 
+    fontSize: '1.8rem', cursor: 'pointer', marginLeft: 'auto' 
+  }}>
+  {menuAberto ? <FaTimes /> : <FaBars />}
+</button>
       </header>
 
       {/* Menu mobile */}
       {menuAberto && (
-        <div style={{ position: 'fixed', top: '76px', left: 0, right: 0, bottom: 0, background: '#1b5e20', zIndex: 999, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="mobile-menu" style={{ position: 'fixed', top: '76px', left: 0, right: 0, bottom: 0, background: '#1b5e20', zIndex: 999, padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {menuItems.map((item) => (
             <div key={item.path} onClick={() => irPara(item.path)}
               style={{ padding: '16px 20px', borderRadius: '14px', background: isActive(item.path) ? 'white' : 'rgba(255,255,255,0.1)', color: isActive(item.path) ? '#2e7d32' : 'white', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '1.1rem' }}>
@@ -132,12 +136,14 @@ export default function Header() {
       )}
 
       <style>{`
-        @media (max-width: 768px) {
-          .desktop-nav { display: none !important; }
-          .desktop-auth { display: none !important; }
-          .hamburger { display: block !important; }
-        }
-      `}</style>
+  @media screen and (max-width: 768px) {
+    .desktop-nav { display: none !important; }
+    .desktop-auth { display: none !important; }
+  }
+  @media screen and (min-width: 769px) {
+    .mobile-menu { display: none !important; }
+  }
+`}</style>
     </>
   );
 }
