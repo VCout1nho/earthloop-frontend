@@ -165,7 +165,7 @@ onSuccess();
   }}
 >
   Fechar ✓
-</button>
+</button>   
           </div>
         )}
       </div>

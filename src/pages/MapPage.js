@@ -1,3 +1,4 @@
+cat > /mnt/user-data/outputs/MapPage.js << 'ENDOFFILE'
 import React, { useState, useEffect } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -19,21 +20,19 @@ function MapPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [filtroAtivo, setFiltroAtivo] = useState("todos"); // todos | doacao | venda | lugares
+  const [filtroAtivo, setFiltroAtivo] = useState("todos");
+  const [copiado, setCopiado] = useState(false);
 
-  // ── Carrega anúncios do backend ──────────────────────────────────────────────
   useEffect(() => {
     async function carregarAnuncios() {
       setLoadingAnuncios(true);
       try {
         const token = localStorage.getItem("token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
-        // Busca todos os anúncios públicos
         const res = await axios.get(`${BASE_URL}/api/anuncios/todos`, { headers });
         setAnuncios(res.data || []);
       } catch (err) {
-        console.warn("Anúncios do backend indisponíveis, usando localStorage:", err.message);
-        // Fallback para localStorage se backend falhar
+        console.warn("Anúncios do backend indisponíveis:", err.message);
         const local = JSON.parse(localStorage.getItem("anuncios")) || [];
         setAnuncios(local);
       } finally {
@@ -69,7 +68,10 @@ function MapPage() {
     }
   };
 
-  const handleMarkerClick = (item, isAnuncio = false) => setSelectedItem({ ...item, isAnuncio });
+  const handleMarkerClick = (item, isAnuncio = false) => {
+    setSelectedItem({ ...item, isAnuncio });
+    setCopiado(false);
+  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -83,7 +85,35 @@ function MapPage() {
     finally { setLoading(false); }
   };
 
-  // Filtra anúncios com coordenadas e pelo filtro ativo
+  const compartilharAnuncio = (item) => {
+    const url = `${window.location.origin}/anuncio/${item._id || item.id}`;
+    if (navigator.share) {
+      navigator.share({
+        title: item.itemName,
+        text: `Vi um anúncio de ${item.itemName} no EarthLoop!`,
+        url,
+      });
+    } else {
+      navigator.clipboard.writeText(url);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    }
+  };
+
+  const abrirWhatsApp = (item) => {
+    const telefone = (item.contact || item.phone || "").replace(/\D/g, "");
+    const nome = item.businessName || item.name || "estabelecimento";
+    const produto = item.itemName || "";
+    const mensagem = produto
+      ? `Olá! Vi seu anúncio de *${produto}* no EarthLoop e tenho interesse!`
+      : `Olá! Vi o *${nome}* no EarthLoop e gostaria de mais informações.`;
+    if (telefone) {
+      window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`, "_blank");
+    } else {
+      alert(`Entre em contato com ${nome} pelo telefone informado.`);
+    }
+  };
+
   const anunciosFiltrados = anuncios.filter(a => {
     if (!a.lat || !a.lng) return false;
     if (filtroAtivo === "doacao") return a.type === "doacao";
@@ -92,7 +122,6 @@ function MapPage() {
   });
 
   const lugaresFiltrados = (filtroAtivo === "todos" || filtroAtivo === "lugares") ? filteredPlaces : [];
-
   const totalAnuncios = anuncios.filter(a => a.lat && a.lng).length;
 
   return (
@@ -139,30 +168,27 @@ function MapPage() {
                 </>
               )}
             </div>
-            <button onClick={() => {
-  const telefone = (selectedItem.contact || selectedItem.phone || "").replace(/\D/g, "");
-  const nome = selectedItem.businessName || selectedItem.name || "estabelecimento";
-  const produto = selectedItem.itemName || "";
-  const mensagem = produto
-    ? `Olá! Vi seu anúncio de *${produto}* no EarthLoop e tenho interesse!`
-    : `Olá! Vi o *${nome}* no EarthLoop e gostaria de mais informações.`;
-  if (telefone) {
-    window.open(`https://wa.me/55${telefone}?text=${encodeURIComponent(mensagem)}`, "_blank");
-  } else {
-    alert(`Entre em contato com ${nome} pelo telefone informado.`);
-  }
-}}
-  style={{ marginTop: '30px', width: '100%', padding: '16px', background: '#2e7d32', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer' }}
->
-  📲 Entrar em Contato via WhatsApp
-</button>
+
+            {/* Botões de ação */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
+              <button onClick={() => abrirWhatsApp(selectedItem)}
+                style={{ width: '100%', padding: '16px', background: '#25D366', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                📲 Entrar em Contato via WhatsApp
+              </button>
+
+              {/* Botão compartilhar — só para anúncios */}
+              {selectedItem.isAnuncio && (
+                <button onClick={() => compartilharAnuncio(selectedItem)}
+                  style={{ width: '100%', padding: '14px', background: copiado ? '#2e7d32' : '#f0f4f0', color: copiado ? 'white' : '#2e7d32', border: '2px solid #2e7d32', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}>
+                  {copiado ? '✅ Link copiado!' : '🔗 Compartilhar anúncio'}
+                </button>
+              )}
+            </div>
           </div>
         )}
 
         {/* Mapa + busca */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-
-          {/* Barra de busca + filtros */}
           <div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', zIndex: 1000 }}>
             <div style={{ display: 'flex', width: '100%', maxWidth: '580px', background: '#f8faf5', border: '1px solid #ddd', borderRadius: '50px', overflow: 'hidden' }}>
               <input type="text" placeholder="Buscar supermercados, restaurantes ou bairros..."
@@ -172,7 +198,6 @@ function MapPage() {
               <button onClick={handleSearch} style={{ padding: '0 26px', background: '#2e7d32', color: '#fff', border: 'none', cursor: 'pointer' }}>🔎</button>
             </div>
 
-            {/* Filtros */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {[
                 { key: "todos", label: "🗺️ Todos" },
@@ -187,7 +212,6 @@ function MapPage() {
               ))}
             </div>
 
-            {/* Status dos anúncios */}
             {loadingAnuncios ? (
               <span style={{ fontSize: '0.85rem', color: '#888' }}>Carregando anúncios...</span>
             ) : (
@@ -197,7 +221,6 @@ function MapPage() {
             )}
           </div>
 
-          {/* Mapa */}
           <div style={{ flex: 1, position: 'relative' }}>
             {loading && (
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 2000, background: 'rgba(255,255,255,0.95)', padding: '1rem 2rem', borderRadius: '16px', color: '#2e7d32', fontWeight: '600' }}>
@@ -207,13 +230,11 @@ function MapPage() {
 
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
               <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
               {lugaresFiltrados.map((place) => (
                 <Marker key={`place-${place.id}`} position={[place.lat, place.lng]}
                   icon={place.type === 'supermarket' ? supermarketIcon : restaurantIcon}
                   eventHandlers={{ click: () => handleMarkerClick(place, false) }} />
               ))}
-
               {anunciosFiltrados.map((item) => (
                 <Marker key={`anuncio-${item._id || item.id}`} position={[item.lat, item.lng]}
                   icon={item.type === "doacao" ? doacaoIcon : vendaIcon}

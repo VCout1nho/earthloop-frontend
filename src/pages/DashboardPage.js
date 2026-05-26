@@ -68,7 +68,7 @@ export default function DashboardPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", color: "var(--text-primary)", padding: "2rem 1.5rem" }}>
       <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)", fontWeight: "800", marginBottom: "2.5rem", background: "linear-gradient(90deg, var(--accent), #81c784)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", textAlign: "center" }}>
-        📊 Dashboard
+         Dashboard
       </h1>
 
       {loading ? (
