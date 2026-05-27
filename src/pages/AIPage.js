@@ -191,11 +191,7 @@ export default function AnaliseMarcasPage() {
             }}>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "1.2rem", color: "var(--text-secondary)" }}>Sustentabilidade</div>
-                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#4caf50" }}>
-                  {typeof brandAnalysis.sustainability === "number"
-                    ? `${brandAnalysis.sustainability}%`
-                    : "N/D"}
-                </div>
+                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#4caf50" }}>{brandAnalysis.sustainability}%</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "1.2rem", color: "var(--text-secondary)" }}>Carbono (kg/ano)</div>
@@ -203,25 +199,15 @@ export default function AnaliseMarcasPage() {
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "1.2rem", color: "var(--text-secondary)" }}>Popularidade</div>
-                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#2196f3" }}>
-                  {typeof brandAnalysis.popularity === "number" ? `${brandAnalysis.popularity}%` : "N/D"}
-                </div>
+                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#2196f3" }}>{brandAnalysis.popularity}%</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "1.2rem", color: "var(--text-secondary)" }}>Resp. Social</div>
-                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#4caf50" }}>
-                  {typeof brandAnalysis.socialResponsibility === "number"
-                    ? `${brandAnalysis.socialResponsibility}%`
-                    : "N/D"}
-                </div>
+                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#4caf50" }}>{brandAnalysis.socialResponsibility}%</div>
               </div>
               <div style={{ textAlign: "center" }}>
                 <div style={{ fontSize: "1.2rem", color: "var(--text-secondary)" }}>Resp. Ambiental</div>
-                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#4caf50" }}>
-                  {typeof brandAnalysis.environmentalResponsibility === "number"
-                    ? `${brandAnalysis.environmentalResponsibility}%`
-                    : "N/D"}
-                </div>
+                <div style={{ fontSize: "3.5rem", fontWeight: "900", color: "#4caf50" }}>{brandAnalysis.environmentalResponsibility}%</div>
               </div>
             </div>
 
@@ -248,18 +234,35 @@ export default function AnaliseMarcasPage() {
               textAlign: "left",
             }}>
               <h4 style={{ marginBottom: "1rem", fontSize: "1.4rem", color: "var(--accent)" }}>
-                Recomendações
+                Fontes ESG encontradas na internet
               </h4>
-              {Array.isArray(brandAnalysis.recomendacoes) && brandAnalysis.recomendacoes.length > 0 ? (
-                <ul style={{ lineHeight: "1.9", paddingLeft: "1.2rem", margin: 0 }}>
-                  {brandAnalysis.recomendacoes.map((rec, idx) => (
-                    <li key={idx} style={{ marginBottom: "0.8rem" }}>
-                      {rec}
+              {esgErro ? (
+                <p style={{ color: "#ef4444" }}>{esgErro}</p>
+              ) : esgResultados.length === 0 ? (
+                <p style={{ color: "var(--text-secondary)" }}>
+                  Nenhuma fonte retornada pela busca.
+                </p>
+              ) : (
+                <ul style={{ lineHeight: "1.9", paddingLeft: "1.2rem" }}>
+                  {esgResultados.map((r, idx) => (
+                    <li key={`${r.link || idx}-${idx}`} style={{ marginBottom: "0.9rem" }}>
+                      <div style={{ fontWeight: 700 }}>{r.titulo || "Sem título"}</div>
+                      {r.descricao && (
+                        <div style={{ color: "var(--text-secondary)" }}>{r.descricao}</div>
+                      )}
+                      {r.link && (
+                        <a
+                          href={r.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ color: "var(--accent)" }}
+                        >
+                          {r.link}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p style={{ color: "var(--text-secondary)" }}>Recomendações não disponíveis no momento.</p>
               )}
             </div>
           </div>
