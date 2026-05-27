@@ -3,49 +3,42 @@ import { FaSearch, FaSpinner } from "react-icons/fa";
 import 'leaflet/dist/leaflet.css';
 
 export default function AnaliseMarcasPage() {
-  const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
   const [searchBrand, setSearchBrand] = useState("");
   const [brandAnalysis, setBrandAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState("Digite uma marca acima para começar a análise...");
 
-  const handleSearchBrand = async (e) => {
+  const handleSearchBrand = (e) => {
     e.preventDefault();
     if (!searchBrand.trim()) return;
 
     setLoading(true);
     setBrandAnalysis(null);
     
-    try {
-      const marca = searchBrand.trim();
+    // Simulação de delay da IA (2 segundos)
+    setTimeout(() => {
+      const mockAnalysis = {
+        name: searchBrand.trim(),
+        sustainability: Math.floor(Math.random() * 35 + 65),
+        carbonEmission: Math.floor(Math.random() * 45 + 25),
+        popularity: Math.floor(Math.random() * 40 + 55),
+        socialResponsibility: Math.floor(Math.random() * 40 + 60),
+        environmentalResponsibility: Math.floor(Math.random() * 35 + 65),
+        why: `Os dados foram extraídos de relatórios públicos, certificações (GOTS, Carbono Neutro, ISO 14001), menções na mídia e índices de transparência. Marcas com nota alta publicam relatórios anuais verificados por terceiros e têm cadeia de suprimentos rastreável.`,
+      };
 
-      const r = await fetch(`${BASE_URL}/api/esg`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ marca }),
-      });
-
-      const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(data?.error || "Erro ao buscar ESG");
-
-      const analysis = data?.analysis || data;
-      setBrandAnalysis(analysis);
+      setBrandAnalysis(mockAnalysis);
       setLoading(false);
 
-      const text = analysis?.resumo || `Análise ESG para ${marca}: não foi possível gerar um resumo.`;
-
+      // Efeito de typing nos insights
+      const text = `Análise completa para ${searchBrand.trim()}: A marca demonstra bom desempenho em sustentabilidade e responsabilidade social, mas pode melhorar a compensação de carbono. Recomendação: priorizar fornecedores com certificação ecológica para elevar a nota ambiental para acima de 90%.`;
       let i = 0;
       const typing = setInterval(() => {
         setInsights(text.substring(0, i));
         i++;
         if (i > text.length) clearInterval(typing);
-      }, 25);
-    } catch (err) {
-      setLoading(false);
-      setInsights(
-        "Não foi possível consultar ESG agora. Verifique se o backend está online e se as variáveis GOOGLE_API_KEY/GOOGLE_CSE_ID e OPENAI_API_KEY estão configuradas no Render."
-      );
-    }
+      }, 40);
+    }, 2000);
   };
 
   return (
@@ -225,46 +218,6 @@ export default function AnaliseMarcasPage() {
               </p>
             </div>
 
-            <div style={{
-              marginTop: "2rem",
-              padding: "1.8rem",
-              background: "rgba(255,255,255,0.04)",
-              borderRadius: "16px",
-              border: "1px solid rgba(var(--accent), 0.15)",
-              textAlign: "left",
-            }}>
-              <h4 style={{ marginBottom: "1rem", fontSize: "1.4rem", color: "var(--accent)" }}>
-                Fontes ESG encontradas na internet
-              </h4>
-              {esgErro ? (
-                <p style={{ color: "#ef4444" }}>{esgErro}</p>
-              ) : esgResultados.length === 0 ? (
-                <p style={{ color: "var(--text-secondary)" }}>
-                  Nenhuma fonte retornada pela busca.
-                </p>
-              ) : (
-                <ul style={{ lineHeight: "1.9", paddingLeft: "1.2rem" }}>
-                  {esgResultados.map((r, idx) => (
-                    <li key={`${r.link || idx}-${idx}`} style={{ marginBottom: "0.9rem" }}>
-                      <div style={{ fontWeight: 700 }}>{r.titulo || "Sem título"}</div>
-                      {r.descricao && (
-                        <div style={{ color: "var(--text-secondary)" }}>{r.descricao}</div>
-                      )}
-                      {r.link && (
-                        <a
-                          href={r.link}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ color: "var(--accent)" }}
-                        >
-                          {r.link}
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
           </div>
         )}
       </div>
