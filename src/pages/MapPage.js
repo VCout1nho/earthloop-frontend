@@ -131,8 +131,7 @@ function MapPage() {
 
         {/* Painel lateral */}
         {selectedItem && (
-          <div style={{ width: '380px', background: '#f8faf5', borderRight: '1px solid #ddd', padding: '25px', overflowY: 'auto', boxShadow: '4px 0 15px rgba(0,0,0,0.08)', zIndex: 1000 }}>
-            <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', position: 'relative' }}>
+<div style={{ width: '380px', background: '#f8faf5', borderRight: '1px solid #ddd', padding: '25px', overflowY: 'auto', boxShadow: '4px 0 15px rgba(0,0,0,0.08)' }}>            <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', position: 'relative' }}>
               <button onClick={() => setSelectedItem(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', background: '#f1f1f1', border: 'none', borderRadius: '50%', fontSize: '22px', cursor: 'pointer', color: '#555' }}>✕</button>
 
               {selectedItem.isAnuncio ? (
@@ -188,8 +187,7 @@ function MapPage() {
 
         {/* Mapa + busca */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', zIndex: 1000 }}>
-            <div style={{ display: 'flex', width: '100%', maxWidth: '580px', background: '#f8faf5', border: '1px solid #ddd', borderRadius: '50px', overflow: 'hidden' }}>
+<div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>            <div style={{ display: 'flex', width: '100%', maxWidth: '580px', background: '#f8faf5', border: '1px solid #ddd', borderRadius: '50px', overflow: 'hidden' }}>
               <input type="text" placeholder="Buscar supermercados, restaurantes ou bairros..."
                 value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
