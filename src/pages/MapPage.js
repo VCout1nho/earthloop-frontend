@@ -80,18 +80,17 @@ function MapPage() {
         params: { q: `${searchQuery} Montes Claros MG`, format: 'json', limit: 1 }
       });
       if (res.data?.[0]) fetchNearbyPlaces(parseFloat(res.data[0].lat), parseFloat(res.data[0].lon));
-    } catch { alert("Erro ao realizar a busca."); }
-    finally { setLoading(false); }
+    } catch {
+      alert("Erro ao realizar a busca.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const compartilharAnuncio = (item) => {
     const url = `${window.location.origin}/anuncio/${item._id || item.id}`;
     if (navigator.share) {
-      navigator.share({
-        title: item.itemName,
-        text: `Vi um anúncio de ${item.itemName} no EarthLoop!`,
-        url,
-      });
+      navigator.share({ title: item.itemName, text: `Vi um anúncio de ${item.itemName} no EarthLoop!`, url });
     } else {
       navigator.clipboard.writeText(url);
       setCopiado(true);
@@ -129,55 +128,140 @@ function MapPage() {
 
       <div style={{ flex: 1, display: 'flex', position: 'relative', overflow: 'hidden' }}>
 
-        {/* Painel lateral */}
+        {/* ── Painel lateral ── */}
         {selectedItem && (
-<div style={{ width: '380px', background: '#f8faf5', borderRight: '1px solid #ddd', padding: '25px', overflowY: 'auto', boxShadow: '4px 0 15px rgba(0,0,0,0.08)' }}>            <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', position: 'relative' }}>
-              <button onClick={() => setSelectedItem(null)} style={{ position: 'absolute', top: '16px', right: '16px', width: '36px', height: '36px', background: '#f1f1f1', border: 'none', borderRadius: '50%', fontSize: '22px', cursor: 'pointer', color: '#555' }}>✕</button>
+          <div style={{
+            width: '360px', background: 'white', borderRight: '1px solid #e0e8db',
+            display: 'flex', flexDirection: 'column', overflow: 'hidden',
+            boxShadow: '4px 0 20px rgba(0,0,0,0.08)'
+          }}>
 
+            {/* Header colorido */}
+            <div style={{
+              background: selectedItem.isAnuncio
+                ? 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%)'
+                : 'linear-gradient(135deg, #bf360c 0%, #d84315 60%, #e64a19 100%)',
+              padding: '20px 20px 16px', position: 'relative', flexShrink: 0
+            }}>
+              <button onClick={() => setSelectedItem(null)} style={{
+                position: 'absolute', top: '14px', right: '14px', width: '28px', height: '28px',
+                background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '50%',
+                color: 'white', fontSize: '14px', cursor: 'pointer'
+              }}>✕</button>
+
+              <div style={{
+                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: '600',
+                letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '10px',
+                background: 'rgba(255,255,255,0.18)',
+                color: selectedItem.isAnuncio
+                  ? (selectedItem.type === 'doacao' ? '#c8f5c0' : '#ffd580')
+                  : '#ffd580',
+                border: '1px solid rgba(255,255,255,0.25)'
+              }}>
+                {selectedItem.isAnuncio
+                  ? (selectedItem.type === 'doacao' ? '🌱 Doação' : '🛒 Venda')
+                  : (selectedItem.type === 'supermarket' ? '🛒 Supermercado' : '🍴 Restaurante')}
+              </div>
+
+              <div style={{
+                fontFamily: 'Georgia, serif', fontSize: '20px', color: 'white',
+                lineHeight: '1.2', marginBottom: '6px', paddingRight: '36px'
+              }}>
+                {selectedItem.isAnuncio ? selectedItem.itemName : selectedItem.name}
+              </div>
+
+              <div style={{ fontSize: '12.5px', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                📍 {selectedItem.isAnuncio ? selectedItem.location : selectedItem.address}
+              </div>
+            </div>
+
+            {/* Imagem (só para anúncios com foto) */}
+            {selectedItem.isAnuncio && selectedItem.imagePreview && (
+              <img
+                src={selectedItem.imagePreview}
+                alt={selectedItem.itemName}
+                style={{ width: '100%', height: '150px', objectFit: 'cover', display: 'block', flexShrink: 0 }}
+              />
+            )}
+
+            {/* Corpo scrollável */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
               {selectedItem.isAnuncio ? (
                 <>
-                  {selectedItem.imagePreview && <img src={selectedItem.imagePreview} alt={selectedItem.itemName} style={{ width: '100%', borderRadius: '12px', marginBottom: '16px' }} />}
-                  <h2 style={{ color: '#1b5e20', margin: '0 0 8px' }}>{selectedItem.itemName}</h2>
-                  <p style={{ color: selectedItem.type === 'doacao' ? '#2e7d32' : '#ef6c00', fontWeight: 'bold', fontSize: '1.1rem' }}>
-                    {selectedItem.type === 'doacao' ? '🌱 Doação' : '🛒 Venda'}
-                  </p>
-                  <p><strong>Quantidade:</strong> {selectedItem.quantity}</p>
-                  {selectedItem.type === 'venda' && selectedItem.price && <p><strong>Preço:</strong> R$ {selectedItem.price}</p>}
-                  <p style={{ marginTop: '12px' }}>{selectedItem.description}</p>
-                  <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #eee' }}>
-                    <strong>{selectedItem.businessName}</strong><br />
-                    📍 {selectedItem.location}<br />
-                    📞 {selectedItem.contact}
-                  </div>
+                  {[
+                    { icon: '📦', label: 'Quantidade', value: selectedItem.quantity },
+                    { icon: '🏪', label: 'Anunciante', value: selectedItem.businessName },
+                    { icon: '📞', label: 'Contato', value: selectedItem.contact },
+                    ...(selectedItem.type === 'venda' && selectedItem.price
+                      ? [{ icon: '💰', label: 'Preço', value: `R$ ${selectedItem.price}` }]
+                      : []),
+                  ].map((row, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 0', borderBottom: '1px solid #f0f4ed' }}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', flexShrink: 0 }}>
+                        {row.icon}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>{row.label}</div>
+                        <div style={{ fontSize: '14px', color: '#1a1a1a', fontWeight: '500' }}>{row.value}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {selectedItem.description && (
+                    <p style={{ fontSize: '13.5px', color: '#555', lineHeight: '1.6', marginTop: '12px' }}>
+                      {selectedItem.description}
+                    </p>
+                  )}
                 </>
               ) : (
                 <>
-                  <h2 style={{ color: '#2e7d32', margin: '0 0 12px' }}>{selectedItem.name}</h2>
-                  <p style={{ color: '#555', marginBottom: '20px' }}>{selectedItem.address}</p>
-                  <p style={{ color: '#2e7d32', fontWeight: '600' }}>📞 {selectedItem.phone}</p>
-                  <div style={{ marginTop: '28px' }}>
-                    <h3 style={{ color: '#2e7d32' }}>🌱 Itens para Doação</h3>
-                    <ul style={{ paddingLeft: '22px', color: '#444' }}>{selectedItem.donationItems.map((item, i) => <li key={i}>{item}</li>)}</ul>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 0', borderBottom: '1px solid #f0f4ed' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fff3e0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px' }}>📞</div>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>Telefone</div>
+                      <div style={{ fontSize: '14px', color: '#1a1a1a', fontWeight: '500' }}>{selectedItem.phone}</div>
+                    </div>
                   </div>
-                  <div style={{ marginTop: '26px' }}>
-                    <h3 style={{ color: '#2e7d32' }}>🛒 Itens à Venda</h3>
-                    <ul style={{ paddingLeft: '22px', color: '#444' }}>{selectedItem.saleItems.map((item, i) => <li key={i}>{item}</li>)}</ul>
+
+                  <div style={{ fontSize: '11px', fontWeight: '600', color: '#2e7d32', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '16px 0 8px' }}>
+                    🌱 Itens para Doação
+                  </div>
+                  <div>
+                    {selectedItem.donationItems.map((item, i) => (
+                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', background: '#f0f7ee', border: '1px solid #c8e6c9', borderRadius: '999px', padding: '5px 11px', fontSize: '12.5px', color: '#2e7d32', margin: '3px 3px 3px 0' }}>
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div style={{ fontSize: '11px', fontWeight: '600', color: '#e65100', textTransform: 'uppercase', letterSpacing: '0.06em', margin: '16px 0 8px' }}>
+                    🛒 Itens à Venda
+                  </div>
+                  <div>
+                    {selectedItem.saleItems.map((item, i) => (
+                      <span key={i} style={{ display: 'inline-flex', alignItems: 'center', background: '#fff3e0', border: '1px solid #ffcc80', borderRadius: '999px', padding: '5px 11px', fontSize: '12.5px', color: '#e65100', margin: '3px 3px 3px 0' }}>
+                        {item}
+                      </span>
+                    ))}
                   </div>
                 </>
               )}
             </div>
 
-            {/* Botões de ação */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px' }}>
-              <button onClick={() => abrirWhatsApp(selectedItem)}
-                style={{ width: '100%', padding: '16px', background: '#25D366', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1.1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                📲 Entrar em Contato via WhatsApp
+            {/* Footer fixo com botões */}
+            <div style={{ padding: '14px 16px', background: 'white', borderTop: '1px solid #e8f0e5', display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+              <button
+                onClick={() => abrirWhatsApp(selectedItem)}
+                style={{ width: '100%', padding: '13px', background: '#25D366', color: 'white', border: 'none', borderRadius: '10px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                📲 Entrar em contato via WhatsApp
               </button>
 
-              {/* Botão compartilhar — só para anúncios */}
               {selectedItem.isAnuncio && (
-                <button onClick={() => compartilharAnuncio(selectedItem)}
-                  style={{ width: '100%', padding: '14px', background: copiado ? '#2e7d32' : '#f0f4f0', color: copiado ? 'white' : '#2e7d32', border: '2px solid #2e7d32', borderRadius: '12px', fontSize: '1rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}>
+                <button
+                  onClick={() => compartilharAnuncio(selectedItem)}
+                  style={{ width: '100%', padding: '11px', background: copiado ? '#2e7d32' : 'white', color: copiado ? 'white' : '#2e7d32', border: '1.5px solid #2e7d32', borderRadius: '10px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s' }}
+                >
                   {copiado ? '✅ Link copiado!' : '🔗 Compartilhar anúncio'}
                 </button>
               )}
@@ -185,13 +269,18 @@ function MapPage() {
           </div>
         )}
 
-        {/* Mapa + busca */}
+        {/* ── Mapa + barra de busca ── */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-<div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>            <div style={{ display: 'flex', width: '100%', maxWidth: '580px', background: '#f8faf5', border: '1px solid #ddd', borderRadius: '50px', overflow: 'hidden' }}>
-              <input type="text" placeholder="Buscar supermercados, restaurantes ou bairros..."
-                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+          <div style={{ padding: '12px 20px', background: 'white', borderBottom: '1px solid #eee', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', width: '100%', maxWidth: '580px', background: '#f8faf5', border: '1px solid #ddd', borderRadius: '50px', overflow: 'hidden' }}>
+              <input
+                type="text"
+                placeholder="Buscar supermercados, restaurantes ou bairros..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                style={{ flex: 1, padding: '14px 20px', border: 'none', background: 'transparent', fontSize: '1.05rem', outline: 'none' }} />
+                style={{ flex: 1, padding: '14px 20px', border: 'none', background: 'transparent', fontSize: '1.05rem', outline: 'none' }}
+              />
               <button onClick={handleSearch} style={{ padding: '0 26px', background: '#2e7d32', color: '#fff', border: 'none', cursor: 'pointer' }}>🔎</button>
             </div>
 
@@ -202,8 +291,11 @@ function MapPage() {
                 { key: "venda", label: `🛒 Vendas (${anuncios.filter(a => a.lat && a.type === 'venda').length})` },
                 { key: "lugares", label: `🏪 Estabelecimentos (${filteredPlaces.length})` },
               ].map(f => (
-                <button key={f.key} onClick={() => setFiltroAtivo(f.key)}
-                  style={{ padding: '8px 16px', borderRadius: '999px', border: `2px solid ${filtroAtivo === f.key ? '#2e7d32' : '#ddd'}`, background: filtroAtivo === f.key ? '#2e7d32' : 'white', color: filtroAtivo === f.key ? 'white' : '#444', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}>
+                <button
+                  key={f.key}
+                  onClick={() => setFiltroAtivo(f.key)}
+                  style={{ padding: '8px 16px', borderRadius: '999px', border: `2px solid ${filtroAtivo === f.key ? '#2e7d32' : '#ddd'}`, background: filtroAtivo === f.key ? '#2e7d32' : 'white', color: filtroAtivo === f.key ? 'white' : '#444', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', transition: 'all 0.2s' }}
+                >
                   {f.label}
                 </button>
               ))}
@@ -228,18 +320,25 @@ function MapPage() {
             <MapContainer center={position} zoom={13} style={{ height: '100%', width: '100%' }}>
               <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
               {lugaresFiltrados.map((place) => (
-                <Marker key={`place-${place.id}`} position={[place.lat, place.lng]}
+                <Marker
+                  key={`place-${place.id}`}
+                  position={[place.lat, place.lng]}
                   icon={place.type === 'supermarket' ? supermarketIcon : restaurantIcon}
-                  eventHandlers={{ click: () => handleMarkerClick(place, false) }} />
+                  eventHandlers={{ click: () => handleMarkerClick(place, false) }}
+                />
               ))}
               {anunciosFiltrados.map((item) => (
-                <Marker key={`anuncio-${item._id || item.id}`} position={[item.lat, item.lng]}
+                <Marker
+                  key={`anuncio-${item._id || item.id}`}
+                  position={[item.lat, item.lng]}
                   icon={item.type === "doacao" ? doacaoIcon : vendaIcon}
-                  eventHandlers={{ click: () => handleMarkerClick(item, true) }} />
+                  eventHandlers={{ click: () => handleMarkerClick(item, true) }}
+                />
               ))}
             </MapContainer>
           </div>
         </div>
+
       </div>
     </div>
   );
